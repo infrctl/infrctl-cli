@@ -6,14 +6,18 @@ Five local AI model families. One CLI.
 
 ## Install
 
-```bash
-npm install -g infrctl
-```
-
-Or install with curl:
+Standalone install, no Node.js required:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
+```
+
+The installer downloads the right binary from GitHub Releases into `~/.local/bin`.
+
+npm install, for Node.js users:
+
+```bash
+npm install -g infrctl
 ```
 
 To inspect the installer first:
@@ -25,8 +29,9 @@ sh install.sh
 
 Requirements:
 
-- Node.js 18+
 - Ollama
+
+Node.js 18+ is required only for npm installs or local development.
 
 Install Ollama from:
 
@@ -230,6 +235,7 @@ infrctl update
 cd infrctl
 npm ci
 npm run check
+npm run build:binary
 ```
 
 Release checklist:

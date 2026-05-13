@@ -15,6 +15,8 @@ cd infrctl
 npm ci
 npm run check
 npm run audit:prod
+npm run build:binary
+./dist-bin/infrctl-$(node -p "process.platform + '-' + process.arch")/infrctl --version
 ```
 
 ## Manual Smoke Tests
@@ -68,4 +70,28 @@ Check the curl installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | INFRCTL_DRY_RUN=1 sh
+```
+
+## Binary Release
+
+Tag a release to build and upload standalone binaries:
+
+```bash
+git tag v0.1.1
+git push origin v0.1.1
+```
+
+The release workflow uploads:
+
+- `infrctl-linux-x64.tar.gz`
+- `infrctl-linux-arm64.tar.gz`
+- `infrctl-darwin-x64.tar.gz`
+- `infrctl-darwin-arm64.tar.gz`
+- `infrctl-win32-x64.tar.gz`
+
+After the release finishes:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
+infrctl --version
 ```

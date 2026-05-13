@@ -1,5 +1,7 @@
 node_modules
 dist
+dist-bin
+dist-standalone
 coverage
 .DS_Store
 *.log
