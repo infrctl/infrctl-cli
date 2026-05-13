@@ -12,7 +12,7 @@ Standalone install, no Node.js required:
 curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
 ```
 
-The installer downloads the right binary from GitHub Releases into `~/.local/bin`.
+The installer downloads the right binary from GitHub Releases into `~/.local/bin` and verifies the release checksum before installing.
 
 npm install, for Node.js users:
 
@@ -215,11 +215,19 @@ infrctl pull phi
 
 ## Update
 
+Standalone users can rerun the installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
+```
+
+Node.js users can update with npm:
+
 ```bash
 npm install -g infrctl@latest
 ```
 
-Or:
+From inside the CLI:
 
 ```bash
 infrctl update

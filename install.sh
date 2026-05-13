@@ -55,6 +55,37 @@ download() {
   fail "curl or wget is required to download infrctl."
 }
 
+verify_checksum() {
+  archive="$1"
+  checksum_file="$2"
+  asset_name="$3"
+
+  if [ "${INFRCTL_SKIP_CHECKSUM:-}" = "1" ]; then
+    say "Skipping checksum verification because INFRCTL_SKIP_CHECKSUM=1."
+    return
+  fi
+
+  if command -v sha256sum >/dev/null 2>&1; then
+    (cd "$(dirname "$archive")" && sha256sum -c "$(basename "$checksum_file")" >/dev/null)
+    say "Checksum verified."
+    return
+  fi
+
+  if command -v shasum >/dev/null 2>&1; then
+    expected="$(awk '{print $1}' "$checksum_file")"
+    actual="$(shasum -a 256 "$archive" | awk '{print $1}')"
+
+    if [ "$expected" != "$actual" ]; then
+      fail "Checksum verification failed for ${asset_name}."
+    fi
+
+    say "Checksum verified."
+    return
+  fi
+
+  fail "sha256sum or shasum is required to verify ${asset_name}. Set INFRCTL_SKIP_CHECKSUM=1 to skip verification."
+}
+
 install_with_npm() {
   package_version="${INFRCTL_NPM_VERSION:-latest}"
   target="infrctl@${package_version}"
@@ -101,6 +132,7 @@ say "Installing infrctl ${version} for ${platform}-${arch}..."
 
 if [ "${INFRCTL_DRY_RUN:-}" = "1" ]; then
   say "Dry run: download ${url}"
+  say "Dry run: verify ${url}.sha256"
   say "Dry run: install to ${install_dir}/infrctl"
   exit 0
 fi
@@ -109,6 +141,7 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT INT TERM
 
 archive="$tmp_dir/$asset"
+checksum_file="$tmp_dir/$asset.sha256"
 download "$url" "$archive" || {
   if [ "${INFRCTL_ALLOW_NPM_FALLBACK:-}" = "1" ]; then
     say "Binary download failed. Falling back to npm..."
@@ -118,6 +151,9 @@ download "$url" "$archive" || {
 
   fail "Could not download ${url}. Set INFRCTL_ALLOW_NPM_FALLBACK=1 to fall back to npm."
 }
+
+download "$url.sha256" "$checksum_file" || fail "Could not download checksum ${url}.sha256."
+verify_checksum "$archive" "$checksum_file" "$asset"
 
 mkdir -p "$install_dir"
 tar -xzf "$archive" -C "$tmp_dir"
