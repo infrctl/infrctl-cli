@@ -52,6 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh
 infrctl setup --starter
 infrctl
 infrctl -p "say hello from infrctl"
+infrctl smith "explain this repo"
 ```
 
 The starter setup installs Ollama if needed, starts it when possible, and pulls a lighter first-run model set: Phi and Qwen. Add more models later:
@@ -107,6 +108,95 @@ Inside chat:
 /exit
 ```
 
+## Smith Coding Agent
+
+Smith is the local coding agent inside `infrctl`:
+
+```bash
+infrctl smith "find the config loading code"
+infrctl smith "add tests for the status command"
+infrctl smith --model qwen "refactor this function"
+infrctl smith --dry-run "show the patch you would make"
+infrctl smith --json "explain this repo"
+```
+
+Run it without a task to open an interactive Smith session:
+
+```bash
+infrctl smith
+```
+
+Smith works inside your current directory by default. To point it at another repo:
+
+```bash
+infrctl smith --cwd /path/to/repo "summarize the command structure"
+```
+
+Safety defaults are intentionally conservative:
+
+- Smith can scan, read, and search your repo.
+- Smith drafts unified diff patches and asks before applying them.
+- Smith asks before running shell commands.
+- Smith saves reversible patch backups for undo.
+- Smith reads key repo files like `AGENTS.md`, `README.md`, `package.json`, and framework config.
+- Smith blocks destructive, publishing, deployment, and private-key-related commands in V1.
+
+Permission profiles:
+
+```bash
+infrctl smith --profile safe "explain this code"       # read/search only
+infrctl smith --profile normal "fix this test"         # default approvals
+infrctl smith --profile fast "fix and run checks"      # auto-edit safe patches
+infrctl smith --profile danger "move quickly"          # still blocks destructive commands
+```
+
+Approval modes:
+
+```bash
+infrctl smith --approval ask "add a small test"        # default: approve patches
+infrctl smith --approval step "inspect this bug"       # approve each action
+infrctl smith --approval auto-edit "fix a typo"        # apply safe validated patches
+```
+
+Shell modes:
+
+```bash
+infrctl smith --shell ask "run tests after the fix"    # default: ask first
+infrctl smith --shell safe "fix and check the build"   # auto-run safe checks
+infrctl smith --shell off "only propose file edits"    # never run commands
+```
+
+Undo the latest Smith-applied patch for the current workspace:
+
+```bash
+infrctl smith --undo
+```
+
+Inside interactive Smith:
+
+```text
+/status
+/diff
+/apply
+/reject
+/undo
+/run npm test
+/test full
+/model qwen
+/compact
+/exit
+```
+
+Smith sessions are saved locally:
+
+```text
+~/.infrctl/agent-sessions/
+~/.infrctl/agent-patches/
+~/.infrctl/repo-memory/
+```
+
+For coding tasks, Qwen and DeepSeek are usually the strongest defaults. Phi is useful for tiny machines and quick edits.
+
 ## Commands
 
 ```bash
@@ -120,6 +210,7 @@ infrctl ask qwen "hello"
 infrctl serve qwen
 infrctl serve qwen --auto-port
 infrctl status
+infrctl smith "add tests for config loading"
 infrctl doctor
 infrctl config show
 infrctl sessions

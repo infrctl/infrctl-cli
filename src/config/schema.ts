@@ -16,6 +16,13 @@ export const infrctlConfigSchema = z.object({
   chat: z.object({
     autoSave: z.boolean()
   }),
+  agent: z.object({
+    profile: z.enum(["safe", "normal", "fast", "danger"]),
+    approvalMode: z.enum(["ask", "step", "auto-edit"]),
+    shellPolicy: z.enum(["ask", "safe", "off"]),
+    maxSteps: z.number().int().min(1).max(50),
+    maxContextChars: z.number().int().min(10_000).max(200_000)
+  }),
   serve: z.object({
     host: z.string().min(1),
     port: z.number().int().min(1).max(65535)

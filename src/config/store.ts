@@ -40,6 +40,13 @@ export function defaultConfig(totalRamGb?: number): InfrctlConfig {
     chat: {
       autoSave: true
     },
+    agent: {
+      profile: "normal",
+      approvalMode: "ask",
+      shellPolicy: "ask",
+      maxSteps: 16,
+      maxContextChars: 60_000
+    },
     serve: {
       host: "127.0.0.1",
       port: 8787

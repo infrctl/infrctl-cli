@@ -10,6 +10,7 @@ const COMMANDS = [
   "serve",
   "doctor",
   "status",
+  "smith",
   "sessions",
   "resume",
   "config",

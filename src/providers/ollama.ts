@@ -42,6 +42,13 @@ type OllamaChatResponse = {
   error?: string;
 };
 
+function ollamaTimeoutMs(): number {
+  const raw = process.env.INFRCTL_OLLAMA_TIMEOUT_MS;
+  const parsed = raw ? Number(raw) : 120_000;
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 120_000;
+}
+
 export class OllamaProvider implements OllamaProviderLike {
   readonly baseUrl: string;
 
@@ -144,13 +151,31 @@ ${error.message}`);
     init: RequestInit
   ): Promise<Response> {
     let response: Response;
+    const timeoutMs = ollamaTimeoutMs();
 
     try {
       response = await fetch(input, {
         ...init,
-        signal: init.signal ?? AbortSignal.timeout(30000)
+        signal: init.signal ?? AbortSignal.timeout(timeoutMs)
       });
-    } catch {
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.name === "TimeoutError" || error.name === "AbortError")
+      ) {
+        throw new OllamaError(`Ollama did not respond within ${Math.round(
+          timeoutMs / 1000
+        )} seconds.
+
+The model may still be loading or generating on CPU.
+
+Try a smaller model:
+infrctl smith --model phi "your task"
+
+Or increase the timeout:
+INFRCTL_OLLAMA_TIMEOUT_MS=180000 infrctl smith "your task"`);
+      }
+
       throw new OllamaError(`Could not connect to Ollama at ${this.baseUrl}.
 
 Ollama may not be running.
