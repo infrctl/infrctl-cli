@@ -24,8 +24,16 @@ function platformKey() {
   return `${process.platform}-${process.arch}`;
 }
 
+function commandName(command) {
+  if (process.platform !== "win32" || command.endsWith(".cmd")) {
+    return command;
+  }
+
+  return `${command}.cmd`;
+}
+
 function run(command, args) {
-  execFileSync(command, args, {
+  execFileSync(commandName(command), args, {
     cwd: root,
     stdio: "inherit",
     env: process.env
