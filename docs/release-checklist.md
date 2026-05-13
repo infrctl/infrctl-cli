@@ -78,8 +78,8 @@ curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh
 Tag a release to build and upload standalone binaries:
 
 ```bash
-git tag v0.1.2
-git push origin v0.1.2
+git tag v0.1.3
+git push origin v0.1.3
 ```
 
 The release workflow uploads:
@@ -93,6 +93,8 @@ The release workflow uploads:
 After the release finishes:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh -o install.sh
+sh install.sh
+rm install.sh
 infrctl --version
 ```

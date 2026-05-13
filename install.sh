@@ -3,7 +3,13 @@ set -eu
 
 repo="${INFRCTL_REPO:-infrctl/infrctl-cli}"
 version="${INFRCTL_VERSION:-latest}"
-install_dir="${INFRCTL_INSTALL_DIR:-$HOME/.local/bin}"
+if [ -n "${INFRCTL_INSTALL_DIR:-}" ]; then
+  install_dir="$INFRCTL_INSTALL_DIR"
+elif [ "$(id -u 2>/dev/null || printf '1')" = "0" ]; then
+  install_dir="/usr/local/bin"
+else
+  install_dir="$HOME/.local/bin"
+fi
 tmp_dir=""
 ollama_tmp_dir=""
 

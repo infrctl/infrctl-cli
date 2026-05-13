@@ -33,7 +33,7 @@ export function registerSetupCommand(program: Command): void {
     .option("-y, --yes", "install all recommended models without prompts")
     .option("--only <families>", "only install selected families, comma-separated")
     .option("--starter", "install a lighter starter set: phi and qwen")
-    .option("--no-install-ollama", "do not install Ollama automatically when missing")
+    .option("--no-install-ollama", "reserved for standalone installs; npm setup never installs Ollama automatically")
     .action(async (options: SetupOptions) => {
       await runSetup(options);
     });

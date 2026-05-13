@@ -47,12 +47,7 @@ export function normalizeCliError(error: unknown): InfrctlError {
 
 export const OLLAMA_MISSING_MESSAGE = `Ollama is not installed.
 
-Run setup to install and configure it:
-infrctl setup
-
-infrctl can install Ollama automatically on Linux and macOS.
-
-Or install Ollama manually from:
+Install Ollama with the standalone infrctl installer or from:
 https://ollama.com/download
 
 Then run:

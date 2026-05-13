@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { OllamaProviderLike } from "../src/providers/ollama";
-import {
-  ensureOllamaReadyForSetup,
-  getOllamaInstallCommand,
-  installOllama,
-  supportsManagedOllamaInstall
-} from "../src/providers/ollamaLifecycle";
+import { ensureOllamaReadyForSetup } from "../src/providers/ollamaLifecycle";
 
 function mockProvider(options: {
   installed: boolean[];
@@ -27,53 +22,36 @@ const quietLogger = {
 };
 
 describe("ollama lifecycle", () => {
-  it("supports managed Ollama install on Linux and macOS", () => {
-    expect(supportsManagedOllamaInstall("linux")).toBe(true);
-    expect(supportsManagedOllamaInstall("darwin")).toBe(true);
-    expect(supportsManagedOllamaInstall("win32")).toBe(false);
-  });
-
-  it("builds the official Ollama install command", () => {
-    expect(getOllamaInstallCommand()).toBe(
-      "curl -fsSL 'https://ollama.com/install.sh' | sh"
-    );
-  });
-
-  it("runs the Ollama installer through sh", async () => {
-    const run = vi.fn(async () => undefined);
-
-    await installOllama({
-      platform: "linux",
-      installUrl: "https://example.com/install.sh",
-      stdio: "pipe",
-      run
-    });
-
-    expect(run).toHaveBeenCalledWith(
-      "sh",
-      ["-c", "curl -fsSL 'https://example.com/install.sh' | sh"],
-      { stdio: "pipe" }
-    );
-  });
-
-  it("installs and starts Ollama during setup when missing", async () => {
+  it("starts Ollama during setup when it is installed but not running", async () => {
     const provider = mockProvider({
-      installed: [false, true],
+      installed: [true],
       running: [false]
     });
-    const installOllamaFn = vi.fn(async () => undefined);
     const startOllamaFn = vi.fn(async () => true);
 
     await ensureOllamaReadyForSetup(provider, {
       yes: true,
       interactive: false,
-      installOllamaFn,
       startOllamaFn,
       logger: quietLogger
     });
 
-    expect(installOllamaFn).toHaveBeenCalledOnce();
     expect(startOllamaFn).toHaveBeenCalledWith(provider);
+  });
+
+  it("does not install Ollama from the npm package", async () => {
+    const provider = mockProvider({
+      installed: [false],
+      running: []
+    });
+
+    await expect(
+      ensureOllamaReadyForSetup(provider, {
+        yes: true,
+        interactive: false,
+        logger: quietLogger
+      })
+    ).rejects.toThrow("Ollama is not installed");
   });
 
   it("respects the setup opt-out", async () => {
