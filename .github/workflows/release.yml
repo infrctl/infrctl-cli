@@ -23,7 +23,7 @@ jobs:
           - os: ubuntu-latest
             platform: linux-arm64
             verify: false
-          - os: macos-13
+          - os: macos-15-intel
             platform: darwin-x64
             verify: true
           - os: macos-14
