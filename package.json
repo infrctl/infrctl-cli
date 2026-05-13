@@ -1,6 +1,6 @@
 {
   "name": "infrctl",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Five local AI model families. One CLI.",
   "license": "MIT",
   "author": "iljanemesis",

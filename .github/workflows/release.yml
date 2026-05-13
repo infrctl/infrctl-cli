@@ -105,7 +105,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes="Standalone infrctl binaries. npm users can install with \`npm install -g infrctl\`."
+          notes="Standalone infrctl binaries. The shell installer can install Ollama automatically on Linux and macOS. npm users can install with \`npm install -g infrctl\`."
 
           if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
             gh release upload "${GITHUB_REF_NAME}" release-assets/* --clobber

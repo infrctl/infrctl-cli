@@ -4,6 +4,8 @@ set -eu
 repo="${INFRCTL_REPO:-infrctl/infrctl-cli}"
 version="${INFRCTL_VERSION:-latest}"
 install_dir="${INFRCTL_INSTALL_DIR:-$HOME/.local/bin}"
+tmp_dir=""
+ollama_tmp_dir=""
 
 say() {
   printf '%s\n' "$1"
@@ -12,6 +14,22 @@ say() {
 fail() {
   say "Error: $1" >&2
   exit 1
+}
+
+cleanup() {
+  if [ -n "$tmp_dir" ]; then
+    rm -rf "$tmp_dir"
+  fi
+
+  if [ -n "$ollama_tmp_dir" ]; then
+    rm -rf "$ollama_tmp_dir"
+  fi
+}
+
+trap cleanup EXIT INT TERM
+
+command_exists() {
+  command -v "$1" >/dev/null 2>&1
 }
 
 if [ "${INFRCTL_DEBUG:-}" = "1" ]; then
@@ -42,17 +60,17 @@ download() {
   url="$1"
   output="$2"
 
-  if command -v curl >/dev/null 2>&1; then
+  if command_exists curl; then
     curl -fsSL "$url" -o "$output"
     return
   fi
 
-  if command -v wget >/dev/null 2>&1; then
+  if command_exists wget; then
     wget -qO "$output" "$url"
     return
   fi
 
-  fail "curl or wget is required to download infrctl."
+  fail "curl or wget is required to download files."
 }
 
 verify_checksum() {
@@ -65,13 +83,13 @@ verify_checksum() {
     return
   fi
 
-  if command -v sha256sum >/dev/null 2>&1; then
+  if command_exists sha256sum; then
     (cd "$(dirname "$archive")" && sha256sum -c "$(basename "$checksum_file")" >/dev/null)
     say "Checksum verified."
     return
   fi
 
-  if command -v shasum >/dev/null 2>&1; then
+  if command_exists shasum; then
     expected="$(awk '{print $1}' "$checksum_file")"
     actual="$(shasum -a 256 "$archive" | awk '{print $1}')"
 
@@ -86,12 +104,66 @@ verify_checksum() {
   fail "sha256sum or shasum is required to verify ${asset_name}. Set INFRCTL_SKIP_CHECKSUM=1 to skip verification."
 }
 
+should_install_ollama() {
+  if [ "${INFRCTL_SKIP_OLLAMA:-}" = "1" ]; then
+    return 1
+  fi
+
+  if [ "${INFRCTL_INSTALL_OLLAMA:-1}" = "0" ]; then
+    return 1
+  fi
+
+  return 0
+}
+
+install_ollama_if_missing() {
+  if ! should_install_ollama; then
+    say "Skipping Ollama install."
+    return
+  fi
+
+  if command_exists ollama; then
+    say "Ollama already installed."
+    return
+  fi
+
+  case "$(uname -s)" in
+    Linux|Darwin) ;;
+    *)
+      fail "Automatic Ollama install is supported on Linux and macOS. Install Ollama manually from https://ollama.com/download."
+      ;;
+  esac
+
+  ollama_url="${INFRCTL_OLLAMA_INSTALL_URL:-https://ollama.com/install.sh}"
+
+  if [ "${INFRCTL_DRY_RUN:-}" = "1" ]; then
+    say "Dry run: install Ollama with ${ollama_url}"
+    return
+  fi
+
+  say ""
+  say "Ollama was not found. Installing Ollama from the official Ollama installer..."
+
+  ollama_tmp_dir="$(mktemp -d)"
+  ollama_script="$ollama_tmp_dir/ollama-install.sh"
+
+  download "$ollama_url" "$ollama_script" || fail "Could not download Ollama installer from ${ollama_url}."
+  sh "$ollama_script" || fail "Ollama installer failed."
+
+  if command_exists ollama; then
+    say "Ollama installed."
+    return
+  fi
+
+  fail "Ollama installer finished, but the ollama command was not found. Open a new terminal or install Ollama from https://ollama.com/download."
+}
+
 install_with_npm() {
   package_version="${INFRCTL_NPM_VERSION:-latest}"
   target="infrctl@${package_version}"
 
-  command -v node >/dev/null 2>&1 || fail "Node.js was not found. Install Node.js 18+ first: https://nodejs.org/"
-  command -v npm >/dev/null 2>&1 || fail "npm was not found. Install npm with Node.js 18+ first: https://nodejs.org/"
+  command_exists node || fail "Node.js was not found. Install Node.js 18+ first: https://nodejs.org/"
+  command_exists npm || fail "npm was not found. Install npm with Node.js 18+ first: https://nodejs.org/"
 
   node_major="$(node -p "Number(process.versions.node.split('.')[0])" 2>/dev/null || printf '0')"
 
@@ -103,7 +175,7 @@ install_with_npm() {
 
   if [ "${INFRCTL_DRY_RUN:-}" = "1" ]; then
     say "Dry run: npm install -g ${target}"
-    exit 0
+    return
   fi
 
   npm install -g "$target"
@@ -111,6 +183,7 @@ install_with_npm() {
 
 if [ "${INFRCTL_INSTALL_METHOD:-binary}" = "npm" ]; then
   install_with_npm
+  install_ollama_if_missing
   exit 0
 fi
 
@@ -134,11 +207,11 @@ if [ "${INFRCTL_DRY_RUN:-}" = "1" ]; then
   say "Dry run: download ${url}"
   say "Dry run: verify ${url}.sha256"
   say "Dry run: install to ${install_dir}/infrctl"
+  install_ollama_if_missing
   exit 0
 fi
 
 tmp_dir="$(mktemp -d)"
-trap 'rm -rf "$tmp_dir"' EXIT INT TERM
 
 archive="$tmp_dir/$asset"
 checksum_file="$tmp_dir/$asset.sha256"
@@ -146,6 +219,7 @@ download "$url" "$archive" || {
   if [ "${INFRCTL_ALLOW_NPM_FALLBACK:-}" = "1" ]; then
     say "Binary download failed. Falling back to npm..."
     install_with_npm
+    install_ollama_if_missing
     exit 0
   fi
 
@@ -170,5 +244,7 @@ case ":$PATH:" in
     say "  export PATH=\"$install_dir:\$PATH\""
     ;;
 esac
+
+install_ollama_if_missing
 
 "$install_dir/infrctl" --version

@@ -8,7 +8,8 @@ import {
 } from "../registry/families";
 import { recommendForHardware } from "../hardware/recommend";
 import { detectHardware } from "../hardware/detect";
-import { OllamaProvider, assertOllamaReady } from "../providers/ollama";
+import { OllamaProvider } from "../providers/ollama";
+import { ensureOllamaReadyForSetup } from "../providers/ollamaLifecycle";
 import { defaultConfig, writeConfig } from "../config/store";
 import { logger } from "../utils/logger";
 import { formatGb, pad } from "../utils/format";
@@ -18,6 +19,7 @@ type SetupOptions = {
   yes?: boolean;
   only?: string;
   starter?: boolean;
+  installOllama?: boolean;
 };
 
 function isInteractive(): boolean {
@@ -31,6 +33,7 @@ export function registerSetupCommand(program: Command): void {
     .option("-y, --yes", "install all recommended models without prompts")
     .option("--only <families>", "only install selected families, comma-separated")
     .option("--starter", "install a lighter starter set: phi and qwen")
+    .option("--no-install-ollama", "do not install Ollama automatically when missing")
     .action(async (options: SetupOptions) => {
       await runSetup(options);
     });
@@ -113,7 +116,12 @@ async function runSetup(options: SetupOptions): Promise<void> {
     );
   }
 
-  await assertOllamaReady(provider);
+  await ensureOllamaReadyForSetup(provider, {
+    yes: options.yes,
+    interactive: isInteractive(),
+    installOllama: options.installOllama,
+    logger
+  });
 
   const familiesToInstall = await chooseFamilies(selectedFamilies, options);
   const nextConfig = defaultConfig(hardware.memory.totalGb);

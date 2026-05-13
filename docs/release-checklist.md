@@ -70,6 +70,7 @@ Check the curl installer:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | INFRCTL_DRY_RUN=1 sh
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | INFRCTL_DRY_RUN=1 INFRCTL_SKIP_OLLAMA=1 sh
 ```
 
 ## Binary Release
@@ -77,8 +78,8 @@ curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh
 Tag a release to build and upload standalone binaries:
 
 ```bash
-git tag v0.1.1
-git push origin v0.1.1
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 The release workflow uploads:
