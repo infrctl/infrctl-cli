@@ -4,17 +4,20 @@ Five local AI model families. One CLI.
 
 `infrctl` is a local-first command-line tool for running AI models from your terminal through Ollama. It keeps the user-facing model surface intentionally small: Qwen, DeepSeek, Llama, Gemma, and Phi.
 
+```bash
+CA: 0x22d0a50bb8b5789655ae1c84b34dc7804b0378e2
+Dexscreener: https://dexscreener.com/base/0xfea8fb6981c153cfc66c855687290f441f94018db40627aa09c8fb79a631ce7b
+```
+
 ## Install
 
 Standalone install, no Node.js required:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh -o install.sh
-sh install.sh
-rm install.sh
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
 ```
 
-The installer downloads the right binary from GitHub Releases, verifies the release checksum, and installs Ollama automatically if it is missing on Linux or macOS. It installs to `/usr/local/bin` when run as root, otherwise to `~/.local/bin`.
+The installer downloads the right binary from GitHub Releases into `~/.local/bin`, verifies the release checksum, and installs Ollama automatically if it is missing on Linux or macOS.
 
 npm install, for Node.js users:
 
@@ -22,13 +25,11 @@ npm install, for Node.js users:
 npm install -g infrctl
 ```
 
-To inspect the installer before running it:
+To inspect the installer first:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh -o install.sh
-less install.sh
 sh install.sh
-rm install.sh
 ```
 
 Requirements:
@@ -41,9 +42,8 @@ Node.js 18+ is required only for npm installs or local development.
 If you already manage Ollama yourself, skip the bundled Ollama install:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh -o install.sh
-INFRCTL_SKIP_OLLAMA=1 sh install.sh
-rm install.sh
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh \
+  | INFRCTL_SKIP_OLLAMA=1 sh
 ```
 
 ## Quickstart
@@ -54,7 +54,7 @@ infrctl
 infrctl -p "say hello from infrctl"
 ```
 
-The starter setup starts Ollama when possible and pulls a lighter first-run model set: Phi and Qwen. The standalone installer installs Ollama first if it is missing. Add more models later:
+The starter setup installs Ollama if needed, starts it when possible, and pulls a lighter first-run model set: Phi and Qwen. Add more models later:
 
 ```bash
 infrctl pull deepseek
@@ -199,9 +199,7 @@ infrctl status
 If Ollama is missing:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh -o install.sh
-sh install.sh
-rm install.sh
+infrctl setup
 ```
 
 If Ollama is installed but not running:
@@ -227,9 +225,7 @@ infrctl pull phi
 Standalone users can rerun the installer:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh -o install.sh
-sh install.sh
-rm install.sh
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
 ```
 
 Node.js users can update with npm:
