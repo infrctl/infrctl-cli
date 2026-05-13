@@ -16,6 +16,10 @@ async function tempDir(): Promise<string> {
   return await mkdtemp(path.join(os.tmpdir(), "infrctl-smith-"));
 }
 
+async function readNormalized(filePath: string): Promise<string> {
+  return (await readFile(filePath, "utf8")).replace(/\r\n/g, "\n");
+}
+
 describe("Smith workspace safety", () => {
   const previousConfigDir = process.env.INFRCTL_CONFIG_DIR;
 
@@ -94,11 +98,11 @@ describe("Smith workspace safety", () => {
 
     expect(result.applied).toBe(true);
     expect(result.files).toEqual(["index.ts"]);
-    await expect(readFile(path.join(root, "index.ts"), "utf8")).resolves.toBe("new\n");
+    await expect(readNormalized(path.join(root, "index.ts"))).resolves.toBe("new\n");
 
     const backup = await undoLatestPatch(root);
 
     expect(backup.summary).toBe("change index");
-    await expect(readFile(path.join(root, "index.ts"), "utf8")).resolves.toBe("old\n");
+    await expect(readNormalized(path.join(root, "index.ts"))).resolves.toBe("old\n");
   });
 });

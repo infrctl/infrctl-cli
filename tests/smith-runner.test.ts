@@ -19,6 +19,10 @@ function mockProvider(responses: string[]): Pick<OllamaProviderLike, "chat"> {
   };
 }
 
+async function readNormalized(filePath: string): Promise<string> {
+  return (await readFile(filePath, "utf8")).replace(/\r\n/g, "\n");
+}
+
 describe("Smith runner", () => {
   let previousConfigDir: string | undefined;
 
@@ -89,7 +93,7 @@ describe("Smith runner", () => {
       applied: true,
       files: ["index.ts"]
     });
-    await expect(readFile(path.join(cwd, "index.ts"), "utf8")).resolves.toBe("new\n");
+    await expect(readNormalized(path.join(cwd, "index.ts"))).resolves.toBe("new\n");
   });
 
   it("captures patches without applying in dry-run mode", async () => {
