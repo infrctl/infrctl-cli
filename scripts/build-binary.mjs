@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import { chmodSync, mkdirSync, rmSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const require = createRequire(import.meta.url);
 
 const targets = {
   "linux-x64": "node20-linux-x64",
@@ -24,16 +26,8 @@ function platformKey() {
   return `${process.platform}-${process.arch}`;
 }
 
-function commandName(command) {
-  if (process.platform !== "win32" || command.endsWith(".cmd")) {
-    return command;
-  }
-
-  return `${command}.cmd`;
-}
-
-function run(command, args) {
-  execFileSync(commandName(command), args, {
+function runNodeScript(script, args) {
+  execFileSync(process.execPath, [script, ...args], {
     cwd: root,
     stdio: "inherit",
     env: process.env
@@ -57,8 +51,11 @@ const outFile = join(outDir, exeName);
 rmSync(outDir, { recursive: true, force: true });
 mkdirSync(outDir, { recursive: true });
 
-run("npm", ["run", "build:standalone"]);
-run("pkg", [
+runNodeScript(require.resolve("tsup/dist/cli-default.js"), [
+  "--config",
+  "tsup.binary.config.ts"
+]);
+runNodeScript(require.resolve("@yao-pkg/pkg/lib-es5/bin.js"), [
   "dist-standalone/standalone.cjs",
   "--targets",
   target,
