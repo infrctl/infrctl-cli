@@ -10,6 +10,19 @@ Five local AI model families. One CLI.
 npm install -g infrctl
 ```
 
+Or install with curl:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | sh
+```
+
+To inspect the installer first:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh -o install.sh
+sh install.sh
+```
+
 Requirements:
 
 - Node.js 18+

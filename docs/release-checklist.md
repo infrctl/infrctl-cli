@@ -63,3 +63,9 @@ After publishing:
 npm install -g infrctl
 infrctl --version
 ```
+
+Check the curl installer:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/infrctl/infrctl-cli/main/install.sh | INFRCTL_DRY_RUN=1 sh
+```
